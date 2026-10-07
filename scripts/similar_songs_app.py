@@ -20,4 +20,13 @@ if artist_name:
 
         if song_slider:
             recommendations = recommend_songs(artist_name, track_name, number= song_slider)
-            st.dataframe(recommendations[["Artist", "Track", "match_percentage"]], hide_index=True)
+            user_data = st.dataframe(recommendations[["Artist", "Track", "match_percentage"]], hide_index=True, on_select="rerun", selection_mode="multi-row")
+            # st.write(user_data)
+            rows = user_data.selection.rows
+            shown = recommendations[["Artist", "Track", "match_percentage"]]
+            if st.button("Save selected"):
+                for num in rows:
+                    song = shown.iloc[num]
+                    pair = (song['Artist'], song['Track'])
+                    if pair not in st.session_state['saved']:
+                        st.session_state['saved'].append((song['Artist'], song['Track']))
