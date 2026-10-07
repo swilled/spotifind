@@ -3,7 +3,9 @@ import streamlit as st
 
 from similar_songs_demo import recommend_songs, songs
 
-st.image("../static/spotifind_logo.png")
+
+st.image("../static/spotifind_logo_neutral.png")
+
 artists = sorted(songs["Artist"].drop_duplicates())
 st.markdown("### Artist", anchors=False)
 artist_name = st.selectbox("Artist", label_visibility="collapsed", options=artists, index=None, placeholder="select an artist")
@@ -30,3 +32,4 @@ if artist_name:
                     pair = (song['Artist'], song['Track'])
                     if pair not in st.session_state['saved']:
                         st.session_state['saved'].append((song['Artist'], song['Track']))
+                st.switch_page("saved_songs.py")

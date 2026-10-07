@@ -5,8 +5,14 @@ st.markdown("# Saved Songs", anchors=False)
 
 saved = st.session_state.get("saved", [])
 
-table = pd.DataFrame(saved, columns=["Artist", "Track"])
+if not saved:
+    st.page_link("similar_songs_app.py", label="Add New Songs :)")
+else:
+    table = pd.DataFrame(saved, columns=["Artist", "Track"])
 
-st.dataframe(table)
+    st.dataframe(table)
+
+if st.button("Find Similar Songs"):
+    st.switch_page("similar_songs_app.py")
 
 
