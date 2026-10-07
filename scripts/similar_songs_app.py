@@ -1,17 +1,23 @@
+
 import streamlit as st
 
 from similar_songs_demo import recommend_songs, songs
 
-
+st.image("../static/spotifind_logo.png")
 artists = sorted(songs["Artist"].drop_duplicates())
-artist_name = st.selectbox("Artist", artists, index=None, placeholder="select an artist")
+st.markdown("### Artist", anchors=False)
+artist_name = st.selectbox("Artist", label_visibility="collapsed", options=artists, index=None, placeholder="select an artist")
 
 if artist_name:
     artist_songs = songs[songs["Artist"] == artist_name]
     tracks = sorted(artist_songs["Track"].drop_duplicates())
-    track_name = st.selectbox("Song", tracks, index=None, placeholder="select a song")
+    st.markdown("### Song", anchors=False)
+    track_name = st.selectbox("Song",label_visibility="collapsed", options=tracks, index=None, placeholder="select a song")
 
     if track_name:
-        st.write("Recommendations")
-        recommendations = recommend_songs(artist_name, track_name, 5)
-        st.dataframe(recommendations[["Artist", "Track"]], hide_index=True)
+        song_slider = st.slider("Number of similar songs", min_value=1, max_value=10, value=5)
+        st.markdown("### Recommendations", anchors=False)
+
+        if song_slider:
+            recommendations = recommend_songs(artist_name, track_name, number= song_slider)
+            st.dataframe(recommendations[["Artist", "Track", "match_percentage"]], hide_index=True)

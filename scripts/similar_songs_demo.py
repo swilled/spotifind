@@ -11,7 +11,7 @@ features = [
     "Loudness",
 ]
 
-df = pd.read_csv("cleaned_dataset.csv")
+df = pd.read_csv("../cleaned_dataset.csv")
 
 # skip tracks missing one of these values
 songs = df.dropna(subset=features + ["Artist", "Track"]).reset_index(drop=True)
@@ -38,7 +38,7 @@ def recommend_songs(artist_name, track_name, number=5):
     distances = ((scaled_features - scaled_features.iloc[song_number]) ** 2).sum(axis=1) ** 0.5
 
     recommendations = songs[["Artist", "Track", "Album", "Title"]].copy()
-    recommendations["distance"] = distances
+    recommendations["match_percentage"] = 100*(1-distances/distances.max())
 
     # don't recommend the song we started with, even if it has several artist rows
     recommendations = recommendations[
@@ -53,9 +53,9 @@ def recommend_songs(artist_name, track_name, number=5):
     )
     recommendations = recommendations.groupby(
         ["Track", "Album", "Title"], as_index=False
-    ).agg({"Artist": ", ".join, "distance": "min"})
+    ).agg({"Artist": ", ".join, "match_percentage": "min"})
 
-    return recommendations.sort_values("distance").head(number)
+    return recommendations.sort_values("match_percentage", ascending=False).head(number)
 
 
 if __name__ == "__main__":
