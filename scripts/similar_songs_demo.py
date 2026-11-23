@@ -1,5 +1,5 @@
 import pandas as pd
-
+import json
 
 # these are the sound details we'll compare
 features = [
@@ -9,7 +9,12 @@ features = [
     "Valence",
     "Tempo",
     "Loudness",
+    "Speechiness",
+    "Instrumentalness",
+    "Liveness"
 ]
+
+cache = json.load(open("../cache.json"))
 
 df = pd.read_csv("../cleaned_dataset.csv")
 
@@ -17,10 +22,19 @@ df = pd.read_csv("../cleaned_dataset.csv")
 songs = df.dropna(subset=features + ["Artist", "Track"]).reset_index(drop=True)
 
 # put each sound detail on the same scale so tempo doesn't overpower the others
-scaled_features = (songs[features] - songs[features].min()) / (
-    songs[features].max() - songs[features].min()
+# clip to help with outliers by keeping number within range and then z-score to put all features on same scale
+clipped = songs[features].clip(
+    songs[features].quantile(0.01), songs[features].quantile(0.99), axis=1
 )
+scaled_features = (clipped - clipped.mean()) / clipped.std()
 
+scaled_features["Loudness"] *= 1.2         # kids' songs are usually quieter/cleaner
+scaled_features["Liveness"] *= 0.5         # noisy, not very meaningful for style
+scaled_features["Tempo"] *= 0.7            # tempo detection is often off (half/double speed)
+
+songs["Tags"] = songs["Artist"].map(lambda a: "|".join(cache.get(a, [])))
+genres = songs["Tags"].str.get_dummies(sep="|")
+scaled_features = pd.concat([scaled_features, genres * 2], axis=1)
 
 def recommend_songs(artist_name, track_name, number=5):
     matches = songs[
@@ -38,7 +52,7 @@ def recommend_songs(artist_name, track_name, number=5):
     distances = ((scaled_features - scaled_features.iloc[song_number]) ** 2).sum(axis=1) ** 0.5
 
     recommendations = songs[["Artist", "Track", "Album", "Title"]].copy()
-    recommendations["match_percentage"] = 100*(1-distances/distances.max())
+    recommendations["match_percentage"] = 100*(1-distances/distances.median()).clip(lower=0)
 
     # don't recommend the song we started with, even if it has several artist rows
     recommendations = recommendations[
