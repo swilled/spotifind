@@ -28,7 +28,7 @@ clipped = songs[features].clip(
 )
 scaled_features = (clipped - clipped.mean()) / clipped.std()
 
-scaled_features["Loudness"] *= 1.2         # kids' songs are usually quieter/cleaner
+scaled_features["Loudness"] *= 1.2         # separates high intensity songs from softer ones
 scaled_features["Liveness"] *= 0.5         # noisy, not very meaningful for style
 scaled_features["Tempo"] *= 0.7            # tempo detection is often off (half/double speed)
 
